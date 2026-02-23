@@ -1,0 +1,21 @@
+{
+	"name": "SqlServerstg",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "saiserver23.database.windows.net",
+			"database": "stg",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "sai",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJjMTJiMjNhZS0xNGM5LTQzYTQtYjZlMi0xNjcyNTg5ODU4ZTYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IRsql",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

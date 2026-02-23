@@ -1,0 +1,9 @@
+{
+	"name": "saiadf23",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "286f8565-fb6f-4069-9559-980c4e0f56ce",
+		"tenantId": "38ed6526-fc36-4841-80d1-c870f4fa9213"
+	}
+}
