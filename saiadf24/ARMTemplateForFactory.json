@@ -345,6 +345,241 @@
 				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_source')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_target')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/scdtype2')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "ls_azuresql_source",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SrcCust"
+						},
+						{
+							"linkedService": {
+								"referenceName": "ls_azuresql_target",
+								"type": "LinkedServiceReference"
+							},
+							"name": "TrgCust"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "ls_azuresql_target",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"linkedService": {
+								"referenceName": "ls_azuresql_target",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink2"
+						}
+					],
+					"transformations": [
+						{
+							"name": "SrcSelect"
+						},
+						{
+							"name": "TrgSelect"
+						},
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "split1"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "select2"
+						},
+						{
+							"name": "union1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "select3"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          CustName as string,",
+						"          location as string,",
+						"          sales as decimal(19,4)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'query',",
+						"     store: 'sqlserver',",
+						"     query: 'select * from customer',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> SrcCust",
+						"source(output(",
+						"          CustomerKey as integer,",
+						"          CustomerID as integer,",
+						"          CustName as string,",
+						"          location as string,",
+						"          sales as decimal(19,4)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'query',",
+						"     store: 'sqlserver',",
+						"     query: 'select CustomerKey ,\\nCustomerID ,\\nCustName ,\\nlocation ,\\nsales  from customer\\nwhere EndDate is null',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> TrgCust",
+						"SrcCust select(mapColumn(",
+						"          Src_CustomerID = CustomerID,",
+						"          Src_CustName = CustName,",
+						"          Src_location = location,",
+						"          Src_sales = sales",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SrcSelect",
+						"TrgCust select(mapColumn(",
+						"          CustomerKey,",
+						"          Trg_CustomerID = CustomerID,",
+						"          Trg_CustName = CustName,",
+						"          Trg_location = location,",
+						"          Trg_sales = sales",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> TrgSelect",
+						"SrcSelect, TrgSelect lookup(Src_CustomerID == Trg_CustomerID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup1",
+						"lookup1 split(isNull(Trg_CustomerID),",
+						"     disjoint: false) ~> split1@(NewRecords, ExistingRecords)",
+						"split1@NewRecords select(mapColumn(",
+						"          CustomerID = Src_CustomerID,",
+						"          CustName = Src_CustName,",
+						"          location = Src_location,",
+						"          sales = Src_sales",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"split1@ExistingRecords filter(iif(Src_CustomerID!=Trg_CustomerID||Src_CustName!=Trg_CustName||Src_location!=Trg_location||Src_sales!=Trg_sales, true(), false())) ~> filter1",
+						"filter1 select(mapColumn(",
+						"          CustomerID = Src_CustomerID,",
+						"          CustName = Src_CustName,",
+						"          location = Src_location,",
+						"          sales = Src_sales",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select1, select2 union(byName: true)~> union1",
+						"union1 derive(StartDate = currentUTC()) ~> derivedColumn1",
+						"filter1 select(mapColumn(",
+						"          CustomerKey",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3 derive(EndDate = currentUTC()) ~> derivedColumn2",
+						"derivedColumn2 alterRow(updateIf(1==1)) ~> alterRow1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'customer',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'customer',",
+						"     insertable: false,",
+						"     updateable: true,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     keys:['CustomerKey'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink2"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_source')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_target')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_scdtype2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "scdtype2",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SrcCust": {},
+									"TrgCust": {},
+									"sink1": {},
+									"sink2": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/scdtype2')]"
+			]
 		}
 	]
 }
