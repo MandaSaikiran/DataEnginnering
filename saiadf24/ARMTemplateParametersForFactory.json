@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "saiadf24"
+		},
+		"ls_azuresql_source_password": {
+			"value": ""
+		},
+		"ls_azuresql_target_password": {
+			"value": ""
+		},
+		"ls_azuresql_source_properties_typeProperties_server": {
+			"value": "sqlserverfeb24.database.windows.net"
+		},
+		"ls_azuresql_source_properties_typeProperties_database": {
+			"value": "source"
+		},
+		"ls_azuresql_source_properties_typeProperties_userName": {
+			"value": "sai"
+		},
+		"ls_azuresql_target_properties_typeProperties_server": {
+			"value": "sqlserverfeb24.database.windows.net"
+		},
+		"ls_azuresql_target_properties_typeProperties_database": {
+			"value": "target"
+		},
+		"ls_azuresql_target_properties_typeProperties_userName": {
+			"value": "sai"
+		}
+	}
+}
